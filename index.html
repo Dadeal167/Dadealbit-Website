@@ -3,81 +3,297 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Dadealbit 是面向数学题解、笔记和讲义的 Markdown 编辑器，支持公式、文档导出和知乎写作。">
-  <meta name="theme-color" content="#101724">
-  <title>Dadealbit Markdown 编辑器</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="在 Dadealbit Markdown 编辑器里写数学题解、公式笔记和讲义，直接预览排版，导出 Markdown、Word 或 PDF。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dadealbit Markdown 编辑器">
+  <meta property="og:description" content="写公式、整理笔记、排出讲义。打开浏览器即可开始。">
+  <meta property="og:image" content="https://dadeal167.github.io/Dadealbit-Website/assets/editor-preview.png">
+  <link rel="icon" href="./assets/mark.webp" type="image/webp" sizes="100x100">
   <link rel="stylesheet" href="./assets/site.css">
+  <script src="./assets/pointer.js" defer></script>
+  <script src="./assets/site.js" defer></script>
+  <script src="./assets/spine-preview.js" defer></script>
+  <title>Dadealbit Markdown 编辑器</title>
 </head>
 <body>
+  <a class="skip-link" href="#main">跳到正文</a>
   <header class="site-header">
-    <div class="shell header-content">
-      <a class="brand" href="./">
-        <span class="brand-mark" aria-hidden="true">∑</span>
-        <span>Dadealbit</span>
+    <div class="header-content">
+      <a class="brand title-2" href="./" aria-current="page">
+        <img class="brand-mark" src="./assets/mark.webp" width="32" height="32" alt="">
+        Dadealbit
       </a>
-      <nav aria-label="网站导航">
-        <a href="#features">功能</a>
-        <a href="#migration">迁移草稿</a>
-        <a href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor">GitHub</a>
+      <nav class="site-nav" aria-label="网站导航">
+        <a class="title-4" href="#features">功能</a>
+        <a class="title-4" href="#migration">迁移草稿</a>
+        <a class="title-4" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor">GitHub</a>
       </nav>
     </div>
   </header>
 
-  <main>
-    <div class="hero">
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="hero-title">
       <div class="shell hero-content">
-        <div>
-          <h1>数学写作的<br><span>Markdown 编辑器</span></h1>
-          <p class="intro">用符号面板写公式，在正文里直接看排版。把题解整理成讲义，导出 Markdown、Word 或 PDF。</p>
-          <div class="actions">
-            <a class="button primary" href="./editor/">开始使用</a>
-            <a class="button secondary" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest">下载 Windows 版</a>
+        <div class="hero-copy">
+          <h1 class="heading-1" id="hero-title">写的时候像 Word，<br>存下来像 Markdown。</h1>
+          <p class="intro body-3">用符号面板或 LaTeX 写公式，在正文里直接看排版。适合写数学笔记、题解和讲义。</p>
+          <a class="button button-md primary" href="./editor/index.html">打开在线编辑器</a>
+          <div class="hero-details caption-2">
+            <span>无需安装 · 草稿保存在当前浏览器</span>
+            <button class="text-button" type="button" data-motion-toggle hidden>暂停动效</button>
           </div>
-          <p class="storage-note">在线版可直接打开，草稿保存在当前浏览器。</p>
         </div>
-        <figure class="preview">
-          <div class="preview-frame">
-            <img src="./assets/editor-preview.png" alt="编辑器中的二次函数讲义，正文含行内公式、配方法和结果表格" width="1500" height="950" fetchpriority="high">
-          </div>
-          <figcaption>二次函数讲义 · 编辑器实拍</figcaption>
-        </figure>
-      </div>
-    </div>
 
-    <section class="shell features" id="features" aria-labelledby="features-title">
-      <h2 id="features-title">从题解到讲义</h2>
-      <div class="feature-list">
-        <article>
-          <h3>公式与图表</h3>
-          <p>使用符号面板或 LaTeX 输入公式，给行间公式和图表编号，在正文中交叉引用。</p>
-        </article>
-        <article>
-          <h3>文档与工作区</h3>
-          <p>用标签页切换草稿，在本地工作区按正文或公式搜索，查看修改记录并恢复版本。</p>
-        </article>
-        <article>
-          <h3>讲义与知乎</h3>
-          <p>为同一份讲义导出学生版和教师版。Windows 用户也可以下载知乎助手包，把文章存入草稿箱。</p>
-        </article>
+        <div class="preview-shell">
+          <section class="preview" aria-label="编辑器功能演示">
+            <canvas class="hero-motion" aria-hidden="true"></canvas>
+            <input type="radio" name="editor-preview" id="preview-wallpaper" aria-controls="wallpaper-demo" checked>
+            <input type="radio" name="editor-preview" id="preview-formulas" aria-controls="formulas-demo">
+            <input type="radio" name="editor-preview" id="preview-publication" aria-controls="publication-demo">
+            <div class="preview-tabs" aria-label="演示内容">
+              <label class="title-4" for="preview-wallpaper">动态壁纸</label>
+              <label class="title-4" for="preview-formulas">公式与讲义</label>
+              <label class="title-4" for="preview-publication">Word / PDF</label>
+            </div>
+            <article class="preview-panel wallpaper-demo" id="wallpaper-demo" aria-labelledby="wallpaper-title">
+              <div class="preview-media">
+                <img src="./assets/editor-wallpaper.webp" alt="蔚蓝档案 Spine 壁纸在编辑器中显示的效果" width="2523" height="1408" fetchpriority="high">
+                <div class="spine-stage" id="spine-stage" role="img" aria-label="《蔚蓝档案》海边场景的 Spine 动画" data-state="loading"></div>
+              </div>
+              <div class="preview-copy">
+                <h2 class="heading-5" id="wallpaper-title">让正文浮在动态壁纸上</h2>
+                <p class="body-3">支持图片、视频、Spine 和 Wallpaper Engine，可调正文的毛玻璃、不透明度与背景构图。</p>
+                <p class="caption-2 preview-source">海边场景取自《蔚蓝档案》官方游戏的 Spine 文件。</p>
+                <p class="caption-2 spine-status" id="spine-status" role="status" hidden></p>
+              </div>
+            </article>
+            <article class="preview-panel formulas-demo" id="formulas-demo" aria-labelledby="formula-title">
+              <div class="preview-media">
+                <img src="./assets/editor-preview.png" alt="二次函数讲义的编辑器实拍，正文中有配方法公式、例题和结果表格" width="1500" height="950" loading="lazy">
+              </div>
+              <div class="preview-copy">
+                <h2 class="heading-5" id="formula-title">点符号，在正文里看公式</h2>
+                <p class="body-3">用符号面板或 LaTeX 输入行内与行间公式，给长文里的公式编号，在正文中交叉引用。</p>
+              </div>
+            </article>
+            <article class="preview-panel publication-demo" id="publication-demo" aria-labelledby="publication-title">
+              <div class="preview-media">
+                <img src="./assets/editor-publication.png" alt="编辑器中的 Word 与 PDF 排版面板，可以调整模板、纸张和页边距" width="1500" height="950" loading="lazy">
+              </div>
+              <div class="preview-copy">
+                <h2 class="heading-5" id="publication-title">一份讲义，导出多个版本</h2>
+                <p class="body-3">按模板调整纸张、页码和分章分页，再从同一份文档导出 Word、PDF、学生版或教师版。</p>
+              </div>
+            </article>
+          </section>
+        </div>
       </div>
     </section>
 
-    <section class="shell migration" id="migration" aria-labelledby="migration-title">
+    <section class="shell overview" id="features" aria-labelledby="features-title" data-reveal>
       <div>
-        <h2 id="migration-title">迁移已有草稿</h2>
-        <p>浏览器按网站地址保存草稿。第一次换到新地址时，可通过文档库备份迁移。</p>
+        <h2 class="heading-2" id="features-title">从题解到讲义</h2>
+        <p class="body-3">从草稿里的一行算式，到可以发给同学的一份讲义。先把思路写下来，等内容理顺了，再补上图表、编号和排版。</p>
       </div>
-      <ol>
-        <li>用原来的浏览器<a href="https://dadeal167.github.io/Dadeal.bit-Markdown-Editor/">打开旧版编辑器</a>，点击「文档 → 备份全部文档」。</li>
-        <li><a href="./editor/">打开新站编辑器</a>，点击「文档 → 恢复备份」，选择上一步下载的 JSON 文件。</li>
+      <nav class="section-links" aria-label="功能详情">
+        <a class="title-4" href="#math">公式写作</a>
+        <a class="title-4" href="#workspace">本地工作区</a>
+        <a class="title-4" href="#wallpapers">动态壁纸</a>
+        <a class="title-4" href="#publication">出版与知乎</a>
+        <a class="title-4" href="#quickstart">快速上手</a>
+        <a class="title-4" href="#faq">常见问题</a>
+      </nav>
+    </section>
+
+    <section class="shell detail-section" id="math" aria-labelledby="math-title" data-reveal>
+      <div class="detail-copy">
+        <h2 class="heading-3" id="math-title">边写推导，边看公式排版</h2>
+        <p class="body-3">解释一道题时，短式子可以跟着句子走，长推导另起一行。分数、根式或矩阵可以从符号面板选，也可以用熟悉的 LaTeX 写法。</p>
+        <dl class="detail-list">
+          <div>
+            <dt class="title-3">写到一半也能改排版</dt>
+            <dd class="body-3">点开已有公式，就能在行内和行间切换。导入旧讲义时，编辑器也会尝试修复常见的公式写法。</dd>
+          </div>
+          <div>
+            <dt class="title-3">把推导接到后面的章节</dt>
+            <dd class="body-3">给公式、图片和表格编号后，可以在正文引用。长讲义也能用同一套 LaTeX 宏、脚注和参考文献。</dd>
+          </div>
+        </dl>
+      </div>
+      <figure class="detail-media">
+        <img src="./assets/editor-formula.png" alt="公式编辑器左侧输入 LaTeX，右侧显示求和公式的排版预览" width="1560" height="1080" loading="lazy" decoding="async">
+        <figcaption class="caption-2">公式输入、符号面板与实时预览</figcaption>
+      </figure>
+    </section>
+
+    <section class="detail-band blue-band" id="workspace" aria-labelledby="workspace-title">
+      <div class="shell detail-section detail-reverse" data-reveal>
+        <div class="detail-copy">
+          <h2 class="heading-3" id="workspace-title">记得算式，就能找回那篇笔记</h2>
+          <p class="body-3">想起以前写过一个解法，只记得其中一条算式？在本地工作区打开笔记文件夹，输入公式或正文里的词，就能找到对应的文档和位置。</p>
+          <dl class="detail-list">
+            <div>
+              <dt class="title-3">翻章节，或回到上一稿</dt>
+              <dd class="body-3">用大纲跳到某一节，在标签页间对照两篇草稿。改过一轮以后，还可以打开版本记录查看差异或恢复。</dd>
+            </div>
+            <div>
+              <dt class="title-3">让配图跟着原稿走</dt>
+              <dd class="body-3">导入笔记时可以一起读取素材文件夹，图片路径断了也可以重新匹配。分享时打包为 ZIP，图片和 GIF 会随原稿带走。</dd>
+            </div>
+          </dl>
+        </div>
+        <figure class="detail-media">
+          <img src="./assets/editor-preview.png" alt="本地工作区用公式 x^2-4x+3 找到了两篇 Markdown 讲义" width="1500" height="950" loading="lazy" decoding="async">
+          <figcaption class="caption-2">在多篇讲义里搜索同一个公式</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="shell detail-section" id="wallpapers" aria-labelledby="wallpapers-title" data-reveal>
+      <div class="detail-copy">
+        <h2 class="heading-3" id="wallpapers-title">给写作留一点自己的风景</h2>
+        <p class="body-3">在本地完整版里，可以把喜欢的图片、视频或 Spine 场景放在正文后面。想专心看字时，把面板调实一点，或设置成编辑时暂停动画。</p>
+        <dl class="detail-list">
+          <div>
+            <dt class="title-3">给画面里的主体留出位置</dt>
+            <dd class="body-3">正文面板可以移到一侧，按需要选毛玻璃、磨砂或实色。Spine 的缩放和位置也可以单独调整。</dd>
+          </div>
+          <div>
+            <dt class="title-3">下次打开，接着用这套布置</dt>
+            <dd class="body-3">在历史记录里找回用过的壁纸，或把背景、材质和构图存成场景预设，绑定给常写的一篇文档。</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="detail-media pink-media wallpaper-gallery" role="group" aria-label="动态壁纸实拍">
+        <input type="radio" name="wallpaper-screenshot" id="gallery-swimsuit" aria-controls="shot-swimsuit" checked>
+        <input type="radio" name="wallpaper-screenshot" id="gallery-mika" aria-controls="shot-mika">
+        <div class="gallery-options">
+          <label class="title-4" for="gallery-swimsuit">未花（泳装）</label>
+          <label class="title-4" for="gallery-mika">未花</label>
+        </div>
+        <figure class="wallpaper-shot" id="shot-swimsuit">
+          <img src="./assets/wallpaper-mika-swimsuit.png" alt="未花（泳装）的 Spine 场景显示在半透明讲义后方" width="2549" height="1403" loading="lazy" decoding="async">
+        </figure>
+        <figure class="wallpaper-shot" id="shot-mika">
+          <img src="./assets/editor-wallpaper.webp" alt="未花的 Spine 场景显示在数学题解后方" width="2523" height="1408" loading="lazy" decoding="async">
+        </figure>
+        <p class="caption-2 gallery-credit">《蔚蓝档案》官方游戏 Spine 素材 · 编辑器实拍</p>
+      </div>
+    </section>
+
+    <section class="tagline" aria-label="写作流程">
+      <p class="shell heading-2" data-word-reveal><span>写下</span><span>推导，</span><span>检查</span><span>排版。</span><br><span>从同一份</span><span>文档</span><span>导出</span><span>讲义。</span></p>
+    </section>
+
+    <section class="shell detail-section detail-reverse" id="publication" aria-labelledby="publication-title-detail" data-reveal>
+      <div class="detail-copy">
+        <h2 class="heading-3" id="publication-title-detail">一份讲义，给不同的人看</h2>
+        <p class="body-3">课堂上要留答案和解析，发给学生时可以先隐藏。把它们标记好，同一份讲义就能导出学生版、教师版或知乎版。</p>
+        <dl class="detail-list">
+          <div>
+            <dt class="title-3">Markdown 与素材 ZIP</dt>
+            <dd class="body-3">留一份标准 .md 原稿。需要把讲义连同图片发给同学时，可以一起打成 ZIP。</dd>
+          </div>
+          <div>
+            <dt class="title-3">Word 与 PDF</dt>
+            <dd class="body-3">还要改稿就导出 Word，要打印就存成 PDF。排版时可选纸张、页边距和分页，导出前也能检查断图和失效引用。</dd>
+          </div>
+        </dl>
+      </div>
+      <figure class="detail-media mint-media">
+        <img src="./assets/editor-publication.png" alt="讲义导出面板列出纸张、页边距、页眉页脚与预检结果" width="1500" height="950" loading="lazy" decoding="async">
+        <figcaption class="caption-2">讲义模板、版面设置与导出预检</figcaption>
+      </figure>
+    </section>
+
+    <aside class="shell publishing-note" aria-labelledby="zhihu-title" data-reveal>
+      <h2 class="heading-5" id="zhihu-title">继续在知乎编辑</h2>
+      <p class="body-3">如果这篇题解还想发到知乎，可以把「知乎用 .md」导入文章编辑器。Windows 用户也可以用知乎助手先存草稿，再去知乎检查公式、表格和配图。</p>
+    </aside>
+
+    <section class="detail-band mint-band" id="quickstart" aria-labelledby="quickstart-title">
+      <div class="shell guide" data-reveal>
+        <h2 class="heading-3" id="quickstart-title">从手边的一篇笔记开始</h2>
+        <ol class="guide-steps">
+          <li>
+            <h3 class="title-2">打开编辑器</h3>
+            <p class="body-3">可以直接进入在线版，也可以在发布页下载单文件 HTML，用 Edge 或 Chrome 双击打开，离线写作。</p>
+            <a class="title-4" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest">下载单文件 HTML</a>
+          </li>
+          <li>
+            <h3 class="title-2">新建或打开文档</h3>
+            <p class="body-3">通过「文档」新建草稿，或通过「打开」导入 .md 文件。写推导时，从工具栏的「公式」插入行内或行间公式。</p>
+          </li>
+          <li>
+            <h3 class="title-2">保存原稿与备份</h3>
+            <p class="body-3">点「保存 .md」保留可独立打开的文件。需要转移多篇草稿时，从「文档」菜单导出整库备份。</p>
+            <a class="title-4" href="#migration">查看草稿迁移步骤</a>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="shell migration" id="migration" aria-labelledby="migration-title" data-reveal>
+      <div>
+        <h2 class="heading-3" id="migration-title">迁移已有草稿</h2>
+        <p class="body-3">浏览器按网站地址保存草稿。换到新地址时，可以通过文档库备份迁移。</p>
+      </div>
+      <ol class="body-3">
+        <li>用原来的浏览器<a href="https://dadeal167.github.io/Dadeal.bit-Markdown-Editor/">打开旧版编辑器</a>，依次选择「文档」「备份全部文档」。</li>
+        <li><a href="./editor/index.html">打开新站编辑器</a>，依次选择「文档」「恢复备份」，选中刚下载的 JSON 文件。</li>
       </ol>
+    </section>
+
+    <section class="shell faq" id="faq" aria-labelledby="faq-title" data-reveal>
+      <div>
+        <h2 class="heading-3" id="faq-title">常见问题</h2>
+        <a class="title-4" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor#常见问题">查看 README 中的完整说明</a>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary class="title-3">草稿和图片存在哪里？</summary>
+          <p class="body-3">草稿和文档里已嵌入的图片保存在当前浏览器的数据里。清除浏览器数据也会删除这些草稿，重要文档可以提前另存为 .md 或备份整个文档库。</p>
+        </details>
+        <details>
+          <summary class="title-3">导入 Markdown 后，图片为什么没显示？</summary>
+          <p class="body-3">有些导出工具把图片放在旁边的 assets 文件夹。导入后可以点「选导出文件夹修复」，选择包含 assets 的目录，让编辑器重新匹配相对路径。</p>
+        </details>
+        <details>
+          <summary class="title-3">公式出现红框，怎么修？</summary>
+          <p class="body-3">点击红框查看并修改 LaTeX。多处公式有问题时，可以先运行「检查图片与公式」，再按提示修正仍未通过渲染的公式。</p>
+        </details>
+        <details>
+          <summary class="title-3">深色主题下能导出白底 PDF 吗？</summary>
+          <p class="body-3">可以。打印和另存为 PDF 时会使用浅色样式。纸张大小、页边距和分页可以在出版设置里调整。</p>
+        </details>
+        <details>
+          <summary class="title-3">哪些功能需要 Windows？</summary>
+          <p class="body-3">单文件 HTML 可用浏览器打开。独立桌面模式和知乎助手提供 Windows 版本，Wallpaper Engine 原生捕获也在 Windows 桌面模式中使用。</p>
+        </details>
+        <details>
+          <summary class="title-3">任意 Wallpaper Engine 场景都能导入吗？</summary>
+          <p class="body-3">浏览器支持兼容的项目。场景用到的着色器、脚本和资源会影响播放效果，部分场景会显示项目预览图。也可以在 Wallpaper Engine 中播放后共享窗口。</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="shell next-steps" aria-labelledby="start-title" data-reveal>
+      <div>
+        <h2 class="heading-3" id="start-title">开始写作</h2>
+        <p class="body-3">在浏览器中直接打开，或从发布页下载单文件 HTML 和 Windows 知乎助手。</p>
+      </div>
+      <div class="actions">
+        <a class="button button-md primary" href="./editor/index.html">打开在线编辑器</a>
+        <a class="button button-md secondary" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest">查看下载选项</a>
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="shell footer-content">
-      <span>Dadealbit Markdown 编辑器</span>
-      <a href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/issues">报告问题</a>
+      <span class="title-4">Dadealbit Markdown 编辑器</span>
+      <a class="caption-2" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/issues">报告问题</a>
     </div>
   </footer>
 </body>
