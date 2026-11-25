@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Dadealbit 是面向数学题解、笔记和讲义的 Markdown 编辑器，支持公式、文档导出和知乎写作。">
+  <meta name="theme-color" content="#101724">
+  <title>Dadealbit Markdown 编辑器</title>
+  <link rel="stylesheet" href="./assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-content">
+      <a class="brand" href="./">
+        <span class="brand-mark" aria-hidden="true">∑</span>
+        <span>Dadealbit</span>
+      </a>
+      <nav aria-label="网站导航">
+        <a href="#features">功能</a>
+        <a href="#migration">迁移草稿</a>
+        <a href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="shell hero-content">
+        <div>
+          <h1>数学写作的<br><span>Markdown 编辑器</span></h1>
+          <p class="intro">用符号面板写公式，在正文里直接看排版。把题解整理成讲义，导出 Markdown、Word 或 PDF。</p>
+          <div class="actions">
+            <a class="button primary" href="./editor/">开始使用</a>
+            <a class="button secondary" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest">下载 Windows 版</a>
+          </div>
+          <p class="storage-note">在线版可直接打开，草稿保存在当前浏览器。</p>
+        </div>
+        <figure class="preview">
+          <div class="preview-frame">
+            <img src="./assets/editor-preview.png" alt="编辑器中的二次函数讲义，正文含行内公式、配方法和结果表格" width="1500" height="950" fetchpriority="high">
+          </div>
+          <figcaption>二次函数讲义 · 编辑器实拍</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <section class="shell features" id="features" aria-labelledby="features-title">
+      <h2 id="features-title">从题解到讲义</h2>
+      <div class="feature-list">
+        <article>
+          <h3>公式与图表</h3>
+          <p>使用符号面板或 LaTeX 输入公式，给行间公式和图表编号，在正文中交叉引用。</p>
+        </article>
+        <article>
+          <h3>文档与工作区</h3>
+          <p>用标签页切换草稿，在本地工作区按正文或公式搜索，查看修改记录并恢复版本。</p>
+        </article>
+        <article>
+          <h3>讲义与知乎</h3>
+          <p>为同一份讲义导出学生版和教师版。Windows 用户也可以下载知乎助手包，把文章存入草稿箱。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell migration" id="migration" aria-labelledby="migration-title">
+      <div>
+        <h2 id="migration-title">迁移已有草稿</h2>
+        <p>浏览器按网站地址保存草稿。第一次换到新地址时，可通过文档库备份迁移。</p>
+      </div>
+      <ol>
+        <li>用原来的浏览器<a href="https://dadeal167.github.io/Dadeal.bit-Markdown-Editor/">打开旧版编辑器</a>，点击「文档 → 备份全部文档」。</li>
+        <li><a href="./editor/">打开新站编辑器</a>，点击「文档 → 恢复备份」，选择上一步下载的 JSON 文件。</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-content">
+      <span>Dadealbit Markdown 编辑器</span>
+      <a href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/issues">报告问题</a>
+    </div>
+  </footer>
+</body>
+</html>
