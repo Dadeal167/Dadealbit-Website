@@ -634,3 +634,7 @@ button { font-family: inherit; cursor: pointer; }
   .preview-panel { animation: none !important; }
   .button:hover, .button:active, .preview-tabs label:active { transform: none; }
 }
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: .625rem; }
+.plot-home-link { gap: .375rem; }
+.plot-home-link img { display: block; flex: none; }

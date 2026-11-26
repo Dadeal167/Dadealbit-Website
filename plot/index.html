@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f7ff">
+  <meta name="description" content="在 Dadealbit 中构造几何图形、输入函数表达式和导出坐标图。">
+  <title>坐标绘图 · Dadealbit</title>
+  <link rel="icon" href="../assets/mark.webp" type="image/webp">
+  <link rel="stylesheet" href="../assets/site.css?v=5">
+  <link rel="stylesheet" href="./plot.css?v=3">
+  <script src="./plot.bundle.js?v=3" defer></script>
+</head>
+<body class="plot-page">
+  <a class="skip-link" href="#main">跳到绘图</a>
+  <main class="plot-main" id="main" tabindex="-1">
+    <header class="plot-header">
+      <div class="plot-identity">
+        <a class="brand" href="../index.html" aria-label="Dadealbit 官网首页"><img class="brand-mark" src="../assets/mark.webp" width="32" height="32" alt=""></a>
+        <h1>坐标绘图</h1>
+      </div>
+      <div class="plot-actions">
+        <button class="plot-control" id="undo" type="button" title="Ctrl / ⌘ + Z">撤销</button>
+        <button class="plot-control" id="redo" type="button" title="Ctrl / ⌘ + Shift + Z">重做</button>
+        <a class="plot-control plot-editor" href="../editor/index.html">在线编辑器</a>
+        <button class="plot-control plot-primary" id="export-png" type="button">导出 PNG</button>
+      </div>
+    </header>
+
+    <section class="plot-toolbar" aria-label="作图工具">
+      <div id="tool-groups" class="plot-tool-groups" role="group" aria-label="工具分类"></div>
+      <div class="plot-tool-row">
+        <div id="tool-buttons" class="plot-tool-buttons" role="group" aria-label="当前分类的工具"></div>
+        <label class="plot-inline" id="tool-parameter" hidden><span id="parameter-label"></span><input id="parameter-input"></label>
+        <button class="plot-control plot-primary" id="finish-shape" type="button" hidden>完成</button>
+      </div>
+    </section>
+
+    <div class="plot-workspace">
+      <aside class="plot-sidebar" aria-label="表达式、对象和画布设置">
+        <nav class="plot-panes" aria-label="作图侧栏">
+          <button class="plot-control" type="button" id="objects-tab" aria-controls="objects-pane" aria-pressed="true">表达式与对象</button>
+          <button class="plot-control" type="button" id="settings-tab" aria-controls="settings-pane" aria-pressed="false">画布设置</button>
+        </nav>
+
+        <div class="plot-pane" id="objects-pane">
+          <form id="expression-form" class="plot-expression">
+            <label for="expression">LaTeX 表达式</label>
+            <div id="expression-preview" class="plot-expression-preview" aria-label="公式预览">公式预览</div>
+            <div class="plot-field-row">
+              <input id="expression" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="240" placeholder="y=\frac{1}{x}" aria-describedby="expression-help" required>
+              <button class="plot-control plot-primary" type="submit">添加</button>
+            </div>
+            <div class="plot-latex-tools" role="group" aria-label="插入 LaTeX 模板">
+              <button class="plot-control" data-latex-template="fraction" type="button">分数</button>
+              <button class="plot-control" data-latex-template="root" type="button">根号</button>
+              <button class="plot-control" data-latex-template="power" type="button">乘幂</button>
+              <button class="plot-control" data-latex-template="absolute" type="button">绝对值</button>
+            </div>
+            <p id="expression-help">画布上的半透明图形为实时预览。支持 <code>A=(2,3)</code>、<code>y=\sin{x}</code> 和参数 <code>a=2</code>。按 Enter 添加对象。</p>
+            <p id="expression-error" role="alert" hidden></p>
+          </form>
+          <div id="object-list" class="plot-objects" aria-label="作图对象"></div>
+          <p class="plot-empty" id="plot-empty">还没有对象。可输入坐标，或选取上方工具在画布上开始。</p>
+          <section id="inspector" class="plot-inspector" aria-label="所选对象" hidden></section>
+        </div>
+
+        <div class="plot-pane plot-settings" id="settings-pane" hidden>
+          <form id="view-options">
+            <details open><summary>网格</summary><div class="settings-grid">
+              <label>显示方式<select name="grid"><option value="fine">主网格与细分</option><option value="lines">主网格</option><option value="dots">点阵</option><option value="off">隐藏</option></select></label>
+              <label>线型<select name="gridDash"><option value="solid">实线</option><option value="dash">虚线</option><option value="dot">点线</option></select></label>
+              <label>颜色<input name="gridColor" type="color"></label>
+              <label>线宽<input name="gridWeight" type="number" min=".5" max="3" step=".5"></label>
+              <label>x 间距<input name="gridX" type="number" min="0" max="1000000" step="any" title="0 为自动间距"></label>
+              <label>y 间距<input name="gridY" type="number" min="0" max="1000000" step="any" title="0 为自动间距"></label>
+              <small>间距填 0 使用随缩放调整的刻度。</small>
+            </div></details>
+            <details><summary>坐标轴</summary><div class="settings-grid">
+              <label class="plot-check"><input name="axisX" type="checkbox">显示 x 轴</label>
+              <label class="plot-check"><input name="axisY" type="checkbox">显示 y 轴</label>
+              <label>颜色<input name="axesColor" type="color"></label>
+              <label>箭头<select name="arrow"><option value="end">正方向</option><option value="both">双向</option><option value="none">无箭头</option></select></label>
+              <label>刻度<select name="tickStyle"><option value="major">主刻度</option><option value="minor">主、次刻度</option><option value="none">不画刻度线</option></select></label>
+            </div></details>
+            <details><summary>x 轴标签</summary><div class="settings-grid">
+              <label>轴名<input name="xName" maxlength="12"></label><label>单位<input name="xUnit" maxlength="6"></label>
+              <label>数字间距<input name="xTicks" type="number" step="any" min="0" max="1000000" title="0 为自动"></label>
+              <label class="plot-check"><input name="xNumbers" type="checkbox">显示数字</label>
+              <label class="plot-check"><input name="xPositive" type="checkbox">只画正方向</label>
+            </div></details>
+            <details><summary>y 轴标签</summary><div class="settings-grid">
+              <label>轴名<input name="yName" maxlength="12"></label><label>单位<input name="yUnit" maxlength="6"></label>
+              <label>数字间距<input name="yTicks" type="number" step="any" min="0" max="1000000" title="0 为自动"></label>
+              <label class="plot-check"><input name="yNumbers" type="checkbox">显示数字</label>
+              <label class="plot-check"><input name="yPositive" type="checkbox">只画正方向</label>
+            </div></details>
+            <details><summary>背景与捕捉</summary><div class="settings-grid">
+              <label>背景颜色<input name="background" type="color"></label>
+              <label>点捕捉<select name="snap"><option value="free">自由</option><option value="integer">整数坐标</option><option value="grid">主网格</option></select></label>
+              <label class="plot-check"><input name="labels" type="checkbox">显示点名</label>
+              <label class="plot-check"><input name="cursor" type="checkbox">显示指针坐标</label>
+            </div></details>
+          </form>
+          <details id="range-section"><summary>视图范围</summary>
+            <form id="range-form" class="settings-grid">
+              <label>x 最小值<input name="xMin" type="number" step="any" required></label>
+              <label>x 最大值<input name="xMax" type="number" step="any" required></label>
+              <label>y 最小值<input name="yMin" type="number" step="any" required></label>
+              <label>y 最大值<input name="yMax" type="number" step="any" required></label>
+              <label class="plot-check"><input name="equalScale" type="checkbox" checked>等比例坐标轴</label>
+              <button class="plot-control plot-primary" type="submit">应用范围</button>
+            </form>
+          </details>
+        </div>
+      </aside>
+
+      <section class="plot-stage" aria-label="绘图区">
+        <div class="plot-stage-head">
+          <div class="plot-guide"><strong id="active-tool">移动</strong><p id="plot-help"></p></div>
+          <div class="plot-view-buttons" role="group" aria-label="坐标系视图">
+            <button class="plot-control plot-zoom" id="zoom-out" type="button" aria-label="缩小">−</button>
+            <button class="plot-control plot-zoom" id="zoom-in" type="button" aria-label="放大">＋</button>
+            <button class="plot-control" id="fit-view" type="button">适应图形</button>
+            <button class="plot-control" id="reset-view" type="button">回到原点</button>
+          </div>
+        </div>
+        <div class="plot-surface">
+          <canvas id="plot" tabindex="0" aria-label="平面直角坐标系" aria-describedby="plot-help">所有对象也可以从侧栏选择和编辑。</canvas>
+          <output id="coordinates" class="coordinate-readout" aria-live="off" hidden></output>
+        </div>
+        <p class="plot-status" id="plot-status" role="status"></p>
+      </section>
+    </div>
+    <noscript><p>请启用 JavaScript 后使用绘图工具。</p></noscript>
+  </main>
+</body>
+</html>

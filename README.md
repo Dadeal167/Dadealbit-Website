@@ -9,3 +9,5 @@ node scripts/package-editor.mjs "../Dadealbit/dist/online/index.html" 1.2.1
 ```
 
 发布时提交新的 `editor/index.html` 和它引用的构建包。
+
+绘图页的源码位于 `plot/`。修改源码后运行 `node scripts/package-plot.mjs`，使用相邻 `Dadealbit` 仓库的 esbuild 和 KaTeX 更新 `plot/plot.bundle.js`。浏览器打开绘图页时可离线排版公式。
