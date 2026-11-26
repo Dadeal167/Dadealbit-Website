@@ -46,9 +46,9 @@ function animateHero() {
     { color: "66, 211, 177", x: .77, y: .82, phase: 4.4 },
   ];
   const sceneColors = {
-    "preview-wallpaper": [.78, .62, .57],
-    "preview-formulas": [.64, .81, .33],
-    "preview-publication": [.48, .34, .80],
+    "preview-wallpaper": [.52, .24, .34],
+    "preview-formulas": [.31, .55, .20],
+    "preview-publication": [.31, .19, .55],
   };
   let targetColors = sceneColors[preview.querySelector("input:checked").id];
   let lightOpacity = [...targetColors];
@@ -121,8 +121,6 @@ function animateHero() {
   function clearTilt() {
     directionX = 0;
     directionY = 0;
-    preview.style.removeProperty("--preview-tilt-x");
-    preview.style.removeProperty("--preview-tilt-y");
   }
 
   function applyMotionSettings() {
@@ -153,8 +151,6 @@ function animateHero() {
     const bounds = preview.getBoundingClientRect();
     directionX = 2 * (event.clientX - bounds.left) / bounds.width - 1;
     directionY = 2 * (event.clientY - bounds.top) / bounds.height - 1;
-    preview.style.setProperty("--preview-tilt-x", `${-1.6 * directionY}deg`);
-    preview.style.setProperty("--preview-tilt-y", `${2.4 * directionX}deg`);
   }, { passive: true });
   preview.addEventListener("pointerleave", clearTilt);
   toggle.addEventListener("click", () => {
