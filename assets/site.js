@@ -179,3 +179,17 @@ function animateHero() {
 
 revealOnScroll();
 animateHero();
+
+for (const link of document.querySelectorAll("[data-open-editor]")) {
+  const label = link.textContent;
+  link.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    link.setAttribute("aria-busy", "true");
+    link.textContent = "正在打开…";
+  });
+  window.addEventListener("pageshow", () => {
+    if (!link.hasAttribute("aria-busy")) return;
+    link.removeAttribute("aria-busy");
+    link.textContent = label;
+  });
+}

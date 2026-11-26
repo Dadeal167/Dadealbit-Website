@@ -3,36 +3,202 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preload" href="./editor-v1.2.1-01470dab2588.bin" as="fetch" crossorigin="anonymous" fetchpriority="high">
+  <link rel="icon" href="../assets/mark.webp" type="image/webp" sizes="any">
   <title>Dadealbit Markdown 编辑器</title>
-  <style>
-    :root { color-scheme: light dark; font: 1rem/1.6 system-ui, sans-serif; }
-    body { margin: 0; padding: 32px; }
-    p { margin: 1rem 0; }
+  <style id="editor-startup-style">
+    #editor-startup {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483647;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 24px;
+      color-scheme: light;
+      color: #18213b;
+      background: radial-gradient(ellipse at 50% 26%, #fff, #f3f7ff 70%);
+      font: 1rem/1.6 system-ui, "Microsoft YaHei", sans-serif;
+      transition: opacity 160ms ease-out;
+    }
+    #editor-startup.is-ready { opacity: 0; pointer-events: none; }
+    #editor-startup .startup-card {
+      box-sizing: border-box;
+      width: min(100%, 30rem);
+      padding: clamp(1.5rem, 6vw, 2.5rem);
+      border: 1px solid #dce4f2;
+      border-radius: 1.5rem;
+      background: #fff;
+      box-shadow: 0 .5rem 2.5rem #3158d714;
+      text-align: center;
+    }
+    #editor-startup .startup-mark {
+      display: block;
+      margin: 0 auto 1rem;
+      border-radius: .875rem;
+      object-fit: cover;
+    }
+    #editor-startup h1 {
+      margin: 0;
+      color: inherit;
+      font-size: clamp(1.25rem, 5vw, 1.5rem);
+      font-weight: 650;
+      line-height: 1.35;
+      text-wrap: balance;
+    }
+    #editor-startup p { margin: .75rem 0 0; color: #566078; }
+    #editor-startup progress {
+      display: block;
+      width: 100%;
+      height: .5rem;
+      margin: 1.25rem 0 .75rem;
+      accent-color: #3158d7;
+    }
+    #editor-startup [hidden] { display: none !important; }
+    #editor-startup .startup-actions { margin-top: .75rem; }
+    #editor-startup a, #editor-startup button {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      padding-inline: .75rem;
+      border-radius: .625rem;
+      color: #3158d7;
+      font: inherit;
+      font-size: .875rem;
+      text-decoration: none;
+    }
+    #editor-startup a:hover { background: #f3f7ff; }
+    #editor-startup button {
+      border: 0;
+      background: #3158d7;
+      color: #fff;
+      cursor: pointer;
+    }
+    #editor-startup button:hover { background: #2446bc; }
+    #editor-startup :focus-visible { outline: 2px solid #3158d7; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      #editor-startup { transition: none; }
+      #editor-startup progress:indeterminate { visibility: hidden; }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <a href="../">返回官网</a>
-    <p id="status" role="status">正在加载编辑器…</p>
-    <noscript>请启用 JavaScript 后重新打开编辑器。</noscript>
-    <a id="fallback" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest" hidden>下载离线版</a>
+  <main id="editor-startup" aria-labelledby="startup-title">
+    <section class="startup-card">
+      <img class="startup-mark" src="../assets/mark.webp" width="56" height="56" alt="">
+      <h1 id="startup-title">Dadealbit Markdown 编辑器</h1>
+      <p id="startup-status" role="status">正在下载编辑器…</p>
+      <progress id="startup-progress" max="3638915" aria-label="编辑器下载进度"></progress>
+      <div class="startup-actions">
+        <button id="startup-retry" type="button" hidden>重新加载</button>
+        <a href="../">返回官网</a>
+        <a id="startup-fallback" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest" hidden>下载离线版</a>
+      </div>
+      <noscript><p>请启用 JavaScript 后重新打开编辑器。</p></noscript>
+    </section>
   </main>
   <script type="module">
-    try {
-      const response = await fetch('./editor-v1.2.1-01470dab2588.bin')
-      if (!response.ok || !response.body) throw new Error('下载失败')
-      const stream = response.body.pipeThrough(new DecompressionStream('gzip'))
-      const bytes = await new Response(stream).arrayBuffer()
-      const hash = await crypto.subtle.digest('SHA-256', bytes)
-      const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('')
-      if (digest !== '01470dab25887be84c0d2e19747dc48cef8be1968ee7c4015f7fe092c507ef71') throw new Error('文件校验失败')
-      document.open()
-      document.write(new TextDecoder().decode(bytes))
-      document.close()
-    } catch {
-      document.getElementById('status').textContent = '编辑器加载失败。请刷新页面重试。'
-      document.getElementById('fallback').hidden = false
+    const startup = document.getElementById('editor-startup')
+    const styles = document.getElementById('editor-startup-style')
+    const status = document.getElementById('startup-status')
+    const progress = document.getElementById('startup-progress')
+    const retry = document.getElementById('startup-retry')
+    const fallback = document.getElementById('startup-fallback')
+
+    function showFailure(message) {
+      status.textContent = message
+      progress.hidden = true
+      retry.hidden = false
+      fallback.hidden = false
     }
+
+    function mountEditor(html) {
+      document.open()
+      document.write(html)
+      document.close()
+
+      const editorRoot = document.getElementById('root')
+      if (!editorRoot || editorRoot.firstElementChild) return
+      document.head.append(styles)
+      document.body.prepend(startup)
+      retry.onclick = () => location.reload()
+
+      const timeout = setTimeout(() => {
+        showFailure('编辑器启动超时。你可以重新加载或下载离线版。')
+      }, 30000)
+      const observer = new MutationObserver(() => {
+        if (!editorRoot.firstElementChild) return
+        observer.disconnect()
+        clearTimeout(timeout)
+        startup.inert = true
+        startup.classList.add('is-ready')
+        const cleanup = () => {
+          startup.remove()
+          styles.remove()
+        }
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) cleanup()
+        else setTimeout(cleanup, 180)
+      })
+      observer.observe(editorRoot, { childList: true })
+    }
+
+    async function loadEditor(reload = false) {
+      status.textContent = '正在下载编辑器…'
+      progress.removeAttribute('value')
+      progress.hidden = false
+      retry.hidden = true
+      fallback.hidden = true
+
+      // Limit periods without data while allowing slow downloads to finish.
+      const controller = new AbortController()
+      let timeout
+      const resetTimeout = () => {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => controller.abort(), 30000)
+      }
+      resetTimeout()
+
+      try {
+        const response = await fetch('./editor-v1.2.1-01470dab2588.bin', {
+          signal: controller.signal,
+          cache: reload ? 'reload' : 'default',
+        })
+        if (!response.ok || !response.body) throw new Error('下载失败')
+
+        let received = 0
+        let lastProgress = 0
+        const measure = new TransformStream({
+          transform(chunk, output) {
+            resetTimeout()
+            received += chunk.byteLength
+            if (received - lastProgress >= progress.max / 100) {
+              progress.value = received
+              lastProgress = received
+            }
+            output.enqueue(chunk)
+          },
+        })
+        const stream = response.body.pipeThrough(measure).pipeThrough(new DecompressionStream('gzip'))
+        const bytes = await new Response(stream).arrayBuffer()
+        clearTimeout(timeout)
+        progress.value = progress.max
+        status.textContent = '正在启动编辑器…'
+        const hash = await crypto.subtle.digest('SHA-256', bytes)
+        const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('')
+        if (digest !== '01470dab25887be84c0d2e19747dc48cef8be1968ee7c4015f7fe092c507ef71') throw new Error('文件校验失败')
+        mountEditor(new TextDecoder().decode(bytes))
+      } catch {
+        controller.abort()
+        showFailure('编辑器加载失败。你可以重新加载或下载离线版。')
+      } finally {
+        clearTimeout(timeout)
+      }
+    }
+
+    retry.onclick = () => loadEditor(true)
+    loadEditor()
   </script>
 </body>
 </html>

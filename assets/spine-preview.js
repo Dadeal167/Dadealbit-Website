@@ -1,11 +1,13 @@
 const stage = document.querySelector("#spine-stage");
 const status = document.querySelector("#spine-status");
+const retry = document.querySelector("#spine-retry");
 const wallpaper = document.querySelector("#preview-wallpaper");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const scenePath = "./assets/spine/scene/";
 
 let scene;
 let visible = false;
+let nearViewport = false;
 let started = false;
 let frame = 0;
 let previousFrame;
@@ -16,7 +18,10 @@ function loadRuntime() {
     const script = document.createElement("script");
     script.src = "./assets/spine/spine-player.min.js";
     script.onload = () => resolve(window.spine);
-    script.onerror = reject;
+    script.onerror = (error) => {
+      script.remove();
+      reject(error);
+    };
     document.head.append(script);
   });
 }
@@ -28,18 +33,23 @@ async function fetchSceneFile(filename) {
 }
 
 async function createScene() {
-  const [spine, atlasText, skeletonBytes] = await Promise.all([
-    loadRuntime(),
-    fetchSceneFile("CH0294_home.atlas").then((response) => response.text()),
+  const runtime = loadRuntime();
+  const atlasText = fetchSceneFile("CH0294_home.atlas").then((response) => response.text());
+  const textureAssets = Promise.all([runtime, atlasText]).then(async ([spine, text]) => {
+    const atlas = new spine.TextureAtlas(text);
+    const images = await Promise.all(atlas.pages.map(async (page) => {
+      const image = new Image();
+      image.src = scenePath + page.name;
+      await image.decode();
+      return image;
+    }));
+    return { atlas, images };
+  });
+  const [spine, { atlas, images }, skeletonBytes] = await Promise.all([
+    runtime,
+    textureAssets,
     fetchSceneFile("CH0294_home.skel").then((response) => response.arrayBuffer()),
   ]);
-  const atlas = new spine.TextureAtlas(atlasText);
-  const images = await Promise.all(atlas.pages.map(async (page) => {
-    const image = new Image();
-    image.src = scenePath + page.name;
-    await image.decode();
-    return image;
-  }));
 
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "display:block;width:100%;height:100%";
@@ -110,10 +120,8 @@ function failPreview() {
   scene?.dispose();
   scene = undefined;
   stage.dataset.state = "error";
-  if (status) {
-    status.textContent = "实时预览暂不可用，当前显示背景截图。";
-    status.hidden = false;
-  }
+  status.textContent = "暂时无法播放动态壁纸。";
+  retry.hidden = false;
 }
 
 function canShow() {
@@ -141,6 +149,16 @@ function drawFrame(now) {
 }
 
 function syncPreview() {
+  if (!started && (visible || nearViewport) && wallpaper.checked && !document.hidden) {
+    started = true;
+    stage.dataset.state = "loading";
+    status.textContent = "正在加载动态壁纸…";
+    retry.hidden = true;
+    createScene().then((loadedScene) => {
+      scene = loadedScene;
+      syncPreview();
+    }).catch(failPreview);
+  }
   if (!canShow()) {
     cancelAnimationFrame(frame);
     frame = 0;
@@ -148,21 +166,21 @@ function syncPreview() {
     if (scene && stage.dataset.state === "playing") stage.dataset.state = "paused";
     return;
   }
-  if (started) {
-    scheduleFrame();
-    return;
-  }
-  started = true;
-  createScene().then((loadedScene) => {
-    scene = loadedScene;
-    syncPreview();
-  }).catch(failPreview);
+  scheduleFrame();
 }
 
 new IntersectionObserver(([entry]) => {
   visible = entry.isIntersecting;
   syncPreview();
 }).observe(stage);
+new IntersectionObserver(([entry]) => {
+  nearViewport = entry.isIntersecting;
+  syncPreview();
+}, { rootMargin: "0px 0px 240px 0px" }).observe(stage);
+retry.addEventListener("click", () => {
+  started = false;
+  syncPreview();
+});
 stage.closest(".preview").addEventListener("change", syncPreview);
 document.addEventListener("visibilitychange", syncPreview);
 reducedMotion.addEventListener("change", syncPreview);
