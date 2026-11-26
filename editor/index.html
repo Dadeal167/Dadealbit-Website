@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="preload" href="./editor-v1.2.1-01470dab2588.bin" as="fetch" crossorigin="anonymous" fetchpriority="high">
+  <link rel="preload" href="./editor-v1.2.1-1169f3ad9ad5.bin" as="fetch" crossorigin="anonymous" fetchpriority="high">
   <link rel="icon" href="../assets/mark.webp" type="image/webp" sizes="any">
   <title>Dadealbit Markdown 编辑器</title>
   <style id="editor-startup-style">
@@ -90,7 +90,7 @@
       <img class="startup-mark" src="../assets/mark.webp" width="56" height="56" alt="">
       <h1 id="startup-title">Dadealbit Markdown 编辑器</h1>
       <p id="startup-status" role="status">正在下载编辑器…</p>
-      <progress id="startup-progress" max="3638915" aria-label="编辑器下载进度"></progress>
+      <progress id="startup-progress" max="3702882" aria-label="编辑器下载进度"></progress>
       <div class="startup-actions">
         <button id="startup-retry" type="button" hidden>重新加载</button>
         <a href="../">返回官网</a>
@@ -161,7 +161,7 @@
       resetTimeout()
 
       try {
-        const response = await fetch('./editor-v1.2.1-01470dab2588.bin', {
+        const response = await fetch('./editor-v1.2.1-1169f3ad9ad5.bin', {
           signal: controller.signal,
           cache: reload ? 'reload' : 'default',
         })
@@ -187,7 +187,7 @@
         status.textContent = '正在启动编辑器…'
         const hash = await crypto.subtle.digest('SHA-256', bytes)
         const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('')
-        if (digest !== '01470dab25887be84c0d2e19747dc48cef8be1968ee7c4015f7fe092c507ef71') throw new Error('文件校验失败')
+        if (digest !== '1169f3ad9ad5b7722b34c43bb26f157c07fb644002b472a4808e0988d754c251') throw new Error('文件校验失败')
         mountEditor(new TextDecoder().decode(bytes))
       } catch {
         controller.abort()
