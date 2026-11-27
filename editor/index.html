@@ -153,6 +153,7 @@
 
       // Limit periods without data while allowing slow downloads to finish.
       const controller = new AbortController()
+      let downloadComplete = false
       let timeout
       const resetTimeout = () => {
         clearTimeout(timeout)
@@ -183,6 +184,7 @@
         const stream = response.body.pipeThrough(measure).pipeThrough(new DecompressionStream('gzip'))
         const bytes = await new Response(stream).arrayBuffer()
         clearTimeout(timeout)
+        downloadComplete = true
         progress.value = progress.max
         status.textContent = '正在启动编辑器…'
         const hash = await crypto.subtle.digest('SHA-256', bytes)
@@ -190,15 +192,32 @@
         if (digest !== '1169f3ad9ad5b7722b34c43bb26f157c07fb644002b472a4808e0988d754c251') throw new Error('文件校验失败')
         mountEditor(new TextDecoder().decode(bytes))
       } catch {
+        const timedOut = controller.signal.aborted
         controller.abort()
-        showFailure('编辑器加载失败。你可以重新加载或下载离线版。')
+        if (timedOut) {
+          showFailure('下载已超时。请检查网络连接后重试。')
+        } else if (downloadComplete) {
+          showFailure('编辑器文件校验或启动失败。请重新加载。')
+        } else {
+          showFailure('编辑器文件下载或解压失败。请重新加载。')
+        }
       } finally {
         clearTimeout(timeout)
       }
     }
 
-    retry.onclick = () => loadEditor(true)
-    loadEditor()
+    if (location.protocol === 'http:' && ['dadealbit.xyz', 'www.dadealbit.xyz'].includes(location.hostname)) {
+      const secureUrl = new URL(location.href)
+      secureUrl.protocol = 'https:'
+      status.textContent = '正在切换到安全连接…'
+      location.replace(secureUrl.href)
+    } else if (!globalThis.crypto?.subtle || typeof DecompressionStream !== 'function' || typeof TransformStream !== 'function') {
+      showFailure('当前浏览器无法启动在线编辑器。请在支持 HTTPS 的最新版浏览器中打开。')
+      retry.hidden = true
+    } else {
+      retry.onclick = () => loadEditor(true)
+      loadEditor()
+    }
   </script>
 </body>
 </html>
