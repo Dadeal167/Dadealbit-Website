@@ -1,242 +1,74 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { gzipSync } from 'node:zlib'
+import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { renderEditorShell, renderEditorWorker } from './package-editor-startup.mjs'
 
-const [, , htmlPath, version] = process.argv
-if (!htmlPath || !/^\d+\.\d+\.\d+$/.test(version ?? '')) {
-  throw new Error('Usage: node scripts/package-editor.mjs <online-editor-index.html> <version>')
+const [, , inputPath, version] = process.argv
+if (!inputPath || !/^\d+\.\d+\.\d+$/.test(version ?? '')) {
+  throw new Error('Usage: node scripts/package-editor.mjs <dist/online directory> <version>')
 }
 
-const html = await readFile(htmlPath)
-const digest = createHash('sha256').update(html).digest('hex')
-const asset = 'editor-v' + version + '-' + digest.slice(0, 12) + '.bin'
-const directory = new URL('../editor/', import.meta.url)
-const packed = gzipSync(html, { level: 9 })
+const input = resolve(inputPath)
+const output = fileURLToPath(new URL('../editor/', import.meta.url))
+const html = await readFile(join(input, 'index.html'), 'utf8')
+const manifestSource = await readFile(join(input, '.vite', 'manifest.json'), 'utf8')
+const manifest = JSON.parse(manifestSource)
+const files = await listBuildFiles(input)
+const releaseFiles = new Set(files)
+const coreFiles = new Set()
+const staticImports = new Set()
+const fontFamily = file => file.replace(/-[a-z0-9_-]{8}\.[^.]+$/i, '')
+const woff2Families = new Set(files.filter(file => file.endsWith('.woff2')).map(fontFamily))
+const woffFamilies = new Set(files.filter(file => file.endsWith('.woff')).map(fontFamily))
+collectCore('index.html')
 
-await mkdir(directory, { recursive: true })
-await writeFile(new URL(asset, directory), packed)
-await writeFile(new URL('index.html', directory), `<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="preload" href="./${asset}" as="fetch" crossorigin="anonymous" fetchpriority="high">
-  <link rel="icon" href="../assets/mark.webp" type="image/webp" sizes="any">
-  <title>Dadealbit Markdown 编辑器</title>
-  <style id="editor-startup-style">
-    #editor-startup {
-      position: fixed;
-      inset: 0;
-      z-index: 2147483647;
-      display: grid;
-      place-items: center;
-      overflow: auto;
-      box-sizing: border-box;
-      margin: 0;
-      padding: 24px;
-      color-scheme: light;
-      color: #18213b;
-      background: radial-gradient(ellipse at 50% 26%, #fff, #f3f7ff 70%);
-      font: 1rem/1.6 system-ui, "Microsoft YaHei", sans-serif;
-      transition: opacity 160ms ease-out;
-    }
-    #editor-startup.is-ready { opacity: 0; pointer-events: none; }
-    #editor-startup .startup-card {
-      box-sizing: border-box;
-      width: min(100%, 30rem);
-      padding: clamp(1.5rem, 6vw, 2.5rem);
-      border: 1px solid #dce4f2;
-      border-radius: 1.5rem;
-      background: #fff;
-      box-shadow: 0 .5rem 2.5rem #3158d714;
-      text-align: center;
-    }
-    #editor-startup .startup-mark {
-      display: block;
-      margin: 0 auto 1rem;
-      border-radius: .875rem;
-      object-fit: cover;
-    }
-    #editor-startup h1 {
-      margin: 0;
-      color: inherit;
-      font-size: clamp(1.25rem, 5vw, 1.5rem);
-      font-weight: 650;
-      line-height: 1.35;
-      text-wrap: balance;
-    }
-    #editor-startup p { margin: .75rem 0 0; color: #566078; }
-    #editor-startup progress {
-      display: block;
-      width: 100%;
-      height: .5rem;
-      margin: 1.25rem 0 .75rem;
-      accent-color: #3158d7;
-    }
-    #editor-startup [hidden] { display: none !important; }
-    #editor-startup .startup-actions { margin-top: .75rem; }
-    #editor-startup a, #editor-startup button {
-      display: inline-flex;
-      min-height: 44px;
-      align-items: center;
-      padding-inline: .75rem;
-      border-radius: .625rem;
-      color: #3158d7;
-      font: inherit;
-      font-size: .875rem;
-      text-decoration: none;
-    }
-    #editor-startup a:hover { background: #f3f7ff; }
-    #editor-startup button {
-      border: 0;
-      background: #3158d7;
-      color: #fff;
-      cursor: pointer;
-    }
-    #editor-startup button:hover { background: #2446bc; }
-    #editor-startup :focus-visible { outline: 2px solid #3158d7; outline-offset: 3px; }
-    @media (prefers-reduced-motion: reduce) {
-      #editor-startup { transition: none; }
-      #editor-startup progress:indeterminate { visibility: hidden; }
-    }
-  </style>
-</head>
-<body>
-  <main id="editor-startup" aria-labelledby="startup-title">
-    <section class="startup-card">
-      <img class="startup-mark" src="../assets/mark.webp" width="56" height="56" alt="">
-      <h1 id="startup-title">Dadealbit Markdown 编辑器</h1>
-      <p id="startup-status" role="status">正在下载编辑器…</p>
-      <progress id="startup-progress" max="${packed.length}" aria-label="编辑器下载进度"></progress>
-      <div class="startup-actions">
-        <button id="startup-retry" type="button" hidden>重新加载</button>
-        <a href="../">返回官网</a>
-        <a id="startup-fallback" href="https://github.com/Dadeal167/Dadeal.bit-Markdown-Editor/releases/latest" hidden>下载离线版</a>
-      </div>
-      <noscript><p>请启用 JavaScript 后重新打开编辑器。</p></noscript>
-    </section>
-  </main>
-  <script type="module">
-    const startup = document.getElementById('editor-startup')
-    const styles = document.getElementById('editor-startup-style')
-    const status = document.getElementById('startup-status')
-    const progress = document.getElementById('startup-progress')
-    const retry = document.getElementById('startup-retry')
-    const fallback = document.getElementById('startup-fallback')
+function collectCore(key) {
+  if (staticImports.has(key)) return
+  const chunk = manifest[key]
+  if (!chunk) throw new Error(`Missing Vite manifest entry: ${key}`)
+  staticImports.add(key)
 
-    function showFailure(message) {
-      status.textContent = message
-      progress.hidden = true
-      retry.hidden = false
-      fallback.hidden = false
-    }
+  for (const file of [chunk.file, ...(chunk.css ?? []), ...(chunk.assets ?? [])]) {
+    if (!releaseFiles.has(file)) throw new Error(`Missing build file: ${file}`)
+    // The CSS offers legacy font formats as alternatives to WOFF2.
+    const family = fontFamily(file)
+    if (file.endsWith('.woff') && woff2Families.has(family)) continue
+    if (file.endsWith('.ttf') && (woff2Families.has(family) || woffFamilies.has(family))) continue
+    coreFiles.add(file)
+  }
+  for (const dependency of chunk.imports ?? []) collectCore(dependency)
+}
 
-    function mountEditor(html) {
-      document.open()
-      document.write(html)
-      document.close()
+async function listBuildFiles(directory, prefix = '') {
+  const files = []
+  const entries = await readdir(directory, { withFileTypes: true })
+  for (const entry of entries) {
+    const name = prefix + entry.name
+    if (name === 'index.html' || name === '.vite') continue
+    if (entry.isDirectory()) files.push(...await listBuildFiles(join(directory, entry.name), `${name}/`))
+    else if (entry.isFile()) files.push(name)
+  }
+  return files.sort()
+}
 
-      const editorRoot = document.getElementById('root')
-      if (!editorRoot || editorRoot.firstElementChild) return
-      document.head.append(styles)
-      document.body.prepend(startup)
-      retry.onclick = () => location.reload()
+// Include all copied content and the shell/worker template in the immutable release ID.
+const digest = createHash('sha256').update(html).update(manifestSource)
+digest.update(await readFile(new URL(import.meta.url)))
+digest.update(await readFile(new URL('./package-editor-startup.mjs', import.meta.url)))
+for (const file of files) digest.update(file).update(await readFile(join(input, file)))
+const release = `${version}-${digest.digest('hex').slice(0, 12)}`
+const releasePath = `releases/${release}/`
+const offlineShell = `shell-${release}.html`
+const shell = renderEditorShell(html, releasePath, releaseFiles)
+const worker = renderEditorWorker({ release, releasePath, files, coreFiles: [...coreFiles], offlineShell })
 
-      const timeout = setTimeout(() => {
-        showFailure('编辑器启动超时。你可以重新加载或下载离线版。')
-      }, 30000)
-      const observer = new MutationObserver(() => {
-        if (!editorRoot.firstElementChild) return
-        observer.disconnect()
-        clearTimeout(timeout)
-        startup.inert = true
-        startup.classList.add('is-ready')
-        const cleanup = () => {
-          startup.remove()
-          styles.remove()
-        }
-        if (matchMedia('(prefers-reduced-motion: reduce)').matches) cleanup()
-        else setTimeout(cleanup, 180)
-      })
-      observer.observe(editorRoot, { childList: true })
-    }
+const releaseRoot = join(output, releasePath)
+const directories = new Set(files.map(file => dirname(join(releaseRoot, file))))
+for (const directory of directories) await mkdir(directory, { recursive: true })
+await Promise.all(files.map(file => copyFile(join(input, file), join(releaseRoot, file))))
+await writeFile(join(output, offlineShell), shell)
+await writeFile(join(output, 'sw.js'), worker)
+await writeFile(join(output, 'index.html'), shell)
 
-    async function loadEditor(reload = false) {
-      status.textContent = '正在下载编辑器…'
-      progress.removeAttribute('value')
-      progress.hidden = false
-      retry.hidden = true
-      fallback.hidden = true
-
-      // Limit periods without data while allowing slow downloads to finish.
-      const controller = new AbortController()
-      let downloadComplete = false
-      let timeout
-      const resetTimeout = () => {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => controller.abort(), 30000)
-      }
-      resetTimeout()
-
-      try {
-        const response = await fetch('./${asset}', {
-          signal: controller.signal,
-          cache: reload ? 'reload' : 'default',
-        })
-        if (!response.ok || !response.body) throw new Error('下载失败')
-
-        let received = 0
-        let lastProgress = 0
-        const measure = new TransformStream({
-          transform(chunk, output) {
-            resetTimeout()
-            received += chunk.byteLength
-            if (received - lastProgress >= progress.max / 100) {
-              progress.value = received
-              lastProgress = received
-            }
-            output.enqueue(chunk)
-          },
-        })
-        const stream = response.body.pipeThrough(measure).pipeThrough(new DecompressionStream('gzip'))
-        const bytes = await new Response(stream).arrayBuffer()
-        clearTimeout(timeout)
-        downloadComplete = true
-        progress.value = progress.max
-        status.textContent = '正在启动编辑器…'
-        const hash = await crypto.subtle.digest('SHA-256', bytes)
-        const digest = [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('')
-        if (digest !== '${digest}') throw new Error('文件校验失败')
-        mountEditor(new TextDecoder().decode(bytes))
-      } catch {
-        const timedOut = controller.signal.aborted
-        controller.abort()
-        if (timedOut) {
-          showFailure('下载已超时。请检查网络连接后重试。')
-        } else if (downloadComplete) {
-          showFailure('编辑器文件校验或启动失败。请重新加载。')
-        } else {
-          showFailure('编辑器文件下载或解压失败。请重新加载。')
-        }
-      } finally {
-        clearTimeout(timeout)
-      }
-    }
-
-    if (location.protocol === 'http:' && ['dadealbit.xyz', 'www.dadealbit.xyz'].includes(location.hostname)) {
-      const secureUrl = new URL(location.href)
-      secureUrl.protocol = 'https:'
-      status.textContent = '正在切换到安全连接…'
-      location.replace(secureUrl.href)
-    } else if (!globalThis.crypto?.subtle || typeof DecompressionStream !== 'function' || typeof TransformStream !== 'function') {
-      showFailure('当前浏览器无法启动在线编辑器。请在支持 HTTPS 的最新版浏览器中打开。')
-      retry.hidden = true
-    } else {
-      retry.onclick = () => loadEditor(true)
-      loadEditor()
-    }
-  </script>
-</body>
-</html>
-`)
-console.log('Packaged ' + asset)
+console.log(`Packaged online editor ${release}: ${coreFiles.size} core files, ${files.length} total assets`)
